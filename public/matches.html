@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STATIFY: Matches</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/"><i class="fas fa-chart-line"></i> STATIFY</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/leaderboards">Leaderboards</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/matches">Matches</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/tickets">🎫 Tickets</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/add-player">Add Player</a>
+                    </li>
+                </ul>
+                <a class="btn btn-warning btn-sm fw-bold" href="/login">Admin Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; padding: 3rem 0; text-align: center;">
+        <div class="container">
+            <h1 style="font-size: 3rem; font-weight: 800; margin-bottom: 1rem;">
+                <i class="fas fa-calendar-alt"></i> Upcoming Matches
+            </h1>
+            <p style="font-size: 1.2rem; opacity: 0.9;">Stay updated with the latest IPL match schedule</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mt-5 mb-5">
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+                <div id="matchesContainer">
+                    <div class="text-center p-5"><span class="spinner"></span> Loading matches...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer style="background: var(--primary-color); color: white; padding: 2rem 0; text-align: center;">
+        <div class="container">
+            <p style="margin: 0;">&copy; 2025 STATIFY - IPL Player Statistics Hub</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_BASE = '/api';
+        const matchesContainer = document.getElementById('matchesContainer');
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, "&amp;")
+                       .replace(/</g, "&lt;")
+                       .replace(/>/g, "&gt;")
+                       .replace(/"/g, "&quot;")
+                       .replace(/'/g, "&#039;");
+        }
+
+        async function loadMatches() {
+            try {
+                const response = await fetch(`${API_BASE}/matches`);
+                const matches = await response.json();
+                renderMatches(matches);
+            } catch (error) {
+                console.error('Error loading matches:', error);
+                matchesContainer.innerHTML = '<p class="text-danger text-center p-5">Failed to load matches</p>';
+            }
+        }
+
+        function renderMatches(matches) {
+            if (matches.length === 0) {
+                matchesContainer.innerHTML = '<div class="alert alert-info text-center p-5">No upcoming matches scheduled</div>';
+                return;
+            }
+
+            let html = '';
+            matches.forEach((match, index) => {
+                const startTime = new Date(match.start_time);
+                const options = { 
+                    weekday: 'long', 
+                    month: 'long', 
+                    day: 'numeric', 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    timeZoneName: 'short'
+                };
+                const formattedTime = startTime.toLocaleDateString('en-IN', options);
+                const timeFromNow = getTimeFromNow(startTime);
+
+                html += `
+                    <div class="card match-card mb-4">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <h4 class="match-teams mb-2">
+                                        <i class="fas fa-cricket"></i> ${escapeHtml(match.team1)} 
+                                        <span style="color: var(--accent-color); margin: 0 1rem;">vs</span>
+                                        ${escapeHtml(match.team2)}
+                                    </h4>
+                                    <div class="match-details">
+                                        <p class="mb-1">
+                                            <i class="fas fa-calendar-day"></i> ${formattedTime}
+                                        </p>
+                                        <p class="mb-1">
+                                            <i class="fas fa-map-marker-alt"></i> <strong>${escapeHtml(match.venue || 'Venue TBD')}</strong>
+                                        </p>
+                                        ${match.created_by ? `<p class="mb-0"><small><i class="fas fa-user"></i> Created by: ${escapeHtml(match.created_by)}</small></p>` : ''}
+                                    </div>
+                                </div>
+                                <div class="col-md-4 text-md-end text-center mt-3 mt-md-0">
+                                    <div style="padding: 1rem; background: linear-gradient(135deg, rgba(243,156,18,0.1) 0%, rgba(243,156,18,0.05) 100%); border-radius: 10px;">
+                                        <p style="color: var(--accent-color); font-weight: 700; margin-bottom: 0.5rem;">
+                                            <i class="fas fa-hourglass-half"></i> 
+                                        </p>
+                                        <p style="color: var(--text-dark); font-weight: 600; margin: 0;">
+                                            ${timeFromNow}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            matchesContainer.innerHTML = html;
+        }
+
+        function getTimeFromNow(targetDate) {
+            const now = new Date();
+            const diff = targetDate - now;
+            
+            if (diff < 0) {
+                return 'Match Completed';
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+            if (days > 0) {
+                return `${days} day${days > 1 ? 's' : ''} away`;
+            } else if (hours > 0) {
+                return `${hours} hour${hours > 1 ? 's' : ''} away`;
+            } else {
+                return `${minutes} minute${minutes > 1 ? 's' : ''} away`;
+            }
+        }
+
+        // Load matches on page load
+        window.addEventListener('load', loadMatches);
+    </script>
+</body>
+</html>

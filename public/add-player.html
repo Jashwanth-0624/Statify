@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STATIFY: Add Player</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/"><i class="fas fa-chart-line"></i> STATIFY</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/leaderboards">Leaderboards</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/matches">Matches</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/tickets">🎫 Tickets</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/add-player">Add Player</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/schedule-match">📅 Schedule Match</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/edit-player">✏️ Edit Player</a>
+                    </li>
+                </ul>
+                <div id="adminButtons">
+                    <a class="btn btn-warning btn-sm fw-bold" href="/login">Admin Login</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: white; padding: 3rem 0; text-align: center;">
+        <div class="container">
+            <h1 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem;">
+                <i class="fas fa-user-plus"></i> Add New Player
+            </h1>
+            <p style="font-size: 1.1rem; opacity: 0.9;">Register a new player to the IPL statistics database</p>
+        </div>
+    </div>
+
+    <div class="container mt-5 mb-5">
+        <div class="row">
+            <div class="col-lg-8 offset-lg-2">
+
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-user-plus"></i> Player Registration Form</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="addPlayerForm" enctype="multipart/form-data">
+                            <!-- Basic Information -->
+                            <h6 class="mb-3 fw-bold" style="border-bottom: 2px solid var(--accent-color); padding-bottom: 0.5rem;">
+                                <i class="fas fa-info-circle"></i> Basic Information
+                            </h6>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="addName" class="form-label fw-bold">Player Name *</label>
+                                    <input type="text" class="form-control" id="addName" name="name" required placeholder="Full Name">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="addTeam" class="form-label fw-bold">Team *</label>
+                                    <input type="text" class="form-control" id="addTeam" name="team" required placeholder="Team Name">
+                                </div>
+                            </div>
+
+                            <!-- Photo Upload -->
+                            <h6 class="mb-3 fw-bold" style="border-bottom: 2px solid var(--accent-color); padding-bottom: 0.5rem;">
+                                <i class="fas fa-image"></i> Photo
+                            </h6>
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label for="addPhotoUrl" class="form-label fw-bold">Photo URL (Optional)</label>
+                                    <input type="url" class="form-control" id="addPhotoUrl" name="photo_url" placeholder="https://example.com/photo.jpg">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="addPhotoFile" class="form-label fw-bold">OR Upload Photo (Optional)</label>
+                                    <input type="file" class="form-control" id="addPhotoFile" name="photo" accept="image/*">
+                                </div>
+                            </div>
+
+                            <!-- Career Statistics -->
+                            <h6 class="mb-3 fw-bold" style="border-bottom: 2px solid var(--accent-color); padding-bottom: 0.5rem;">
+                                <i class="fas fa-chart-bar"></i> Career Statistics
+                            </h6>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="addRuns" class="form-label fw-bold">Runs (Optional)</label>
+                                    <input type="number" class="form-control" id="addRuns" name="runs" min="0" placeholder="0" value="0">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="addWickets" class="form-label fw-bold">Wickets (Optional)</label>
+                                    <input type="number" class="form-control" id="addWickets" name="wickets" min="0" placeholder="0" value="0">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="addSixes" class="form-label fw-bold">Sixes (Optional)</label>
+                                    <input type="number" class="form-control" id="addSixes" name="sixes" min="0" placeholder="0" value="0">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="addHundreds" class="form-label fw-bold">Hundreds (Optional)</label>
+                                    <input type="number" class="form-control" id="addHundreds" name="hundreds" min="0" placeholder="0" value="0">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="addMatches" class="form-label fw-bold">Matches (Optional)</label>
+                                    <input type="number" class="form-control" id="addMatches" name="matches" min="0" placeholder="0" value="0">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="addAverage" class="form-label fw-bold">Average (Optional)</label>
+                                    <input type="number" step="0.01" class="form-control" id="addAverage" name="average" min="0" placeholder="0.00" value="0.00">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="addStrikeRate" class="form-label fw-bold">Strike Rate (Optional)</label>
+                                    <input type="number" step="0.01" class="form-control" id="addStrikeRate" name="strike_rate" min="0" placeholder="0.00" value="0.00">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-success btn-lg w-100">
+                                <i class="fas fa-check-circle"></i> Add Player
+                            </button>
+                            <div id="addPlayerMessage" class="mt-3"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer style="background: var(--primary-color); color: white; padding: 2rem 0; margin-top: 5rem; text-align: center;">
+        <div class="container">
+            <p style="margin: 0;">&copy; 2025 STATIFY - IPL Player Statistics Hub</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const API_URL = '/api/players';
+
+        function displayMessage(container, message, type = 'success') {
+            container.innerHTML = `<div class="alert alert-${type} d-flex align-items-center" role="alert">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle'}" style="margin-right: 1rem;"></i>
+                ${message}
+            </div>`;
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+
+        const addPlayerForm = document.getElementById('addPlayerForm');
+        const addPlayerMessage = document.getElementById('addPlayerMessage');
+
+        addPlayerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(addPlayerForm);
+            const url = formData.get('photo_url');
+            const file = formData.get('photo');
+
+            if (url && file.name) {
+                displayMessage(addPlayerMessage, 'Please provide either a Photo URL OR upload a Photo File, not both.', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    displayMessage(addPlayerMessage, `<strong>${result.player.name}</strong> has been added successfully to the database!`, 'success');
+                    addPlayerForm.reset();
+                    // Reset all numeric fields to 0
+                    document.getElementById('addRuns').value = '0';
+                    document.getElementById('addWickets').value = '0';
+                    document.getElementById('addSixes').value = '0';
+                    document.getElementById('addHundreds').value = '0';
+                    document.getElementById('addMatches').value = '0';
+                    document.getElementById('addAverage').value = '0.00';
+                    document.getElementById('addStrikeRate').value = '0.00';
+                } else {
+                    displayMessage(addPlayerMessage, `Error: ${result.error}`, 'danger');
+                }
+            } catch (error) {
+                console.error('Add Player Error:', error);
+                displayMessage(addPlayerMessage, 'An unexpected error occurred. Check console for details.', 'danger');
+            }
+        });
+
+        // Check if admin is logged in and update navbar
+        window.addEventListener('load', () => {
+            // Try to access a protected route to see if admin is logged in
+            fetch('/schedule-match')
+                .then(response => {
+                    if (response.ok) {
+                        // Admin is logged in, show logout button
+                        document.getElementById('adminButtons').innerHTML = `
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-info fw-bold" disabled>
+                                    <i class="fas fa-shield-alt"></i> Admin
+                                </button>
+                                <a class="btn btn-danger btn-sm fw-bold" href="/logout">Logout</a>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(() => {
+                    // Not logged in, keep login button
+                });
+        });
+    </script>
+</body>
+</html>
