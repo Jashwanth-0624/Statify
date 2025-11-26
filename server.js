@@ -76,8 +76,20 @@ const requireAdmin = (req, res, next) => {
 // --- Routes ---
 
 // 1. Home Route
+// Helper to safely send public files and report errors rather than crashing
+function safeSendPublic(res, relativePath) {
+    const filePath = path.join(__dirname, 'public', relativePath);
+    res.sendFile(filePath, (err) => {
+        if (err) {
+            console.error('Failed to send file', filePath, err && err.message ? err.message : err);
+            // Expose some basic error to the browser so Vercel logs are visible
+            res.status(500).send(`<pre>Server error: ${String(err && err.message ? err.message : err)}</pre>`);
+        }
+    });
+}
+
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    safeSendPublic(res, 'index.html');
 });
 
 // 2. Admin Login/Logout
@@ -86,7 +98,7 @@ app.get('/login', (req, res) => {
     if (req.session.isAdmin) {
         return res.redirect('/add-player');
     }
-    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+    safeSendPublic(res, 'login.html');
 });
 
 app.post('/login', (req, res) => {
@@ -111,32 +123,32 @@ app.get('/logout', (req, res) => {
 
 // 3. Public Pages
 app.get('/leaderboards', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'leaderboards.html'));
+    safeSendPublic(res, 'leaderboards.html');
 });
 
 app.get('/matches', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'matches.html'));
+    safeSendPublic(res, 'matches.html');
 });
 
 app.get('/tickets', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'tickets.html'));
+    safeSendPublic(res, 'tickets.html');
 });
 
 app.get('/player-profile', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'player-profile.html'));
+    safeSendPublic(res, 'player-profile.html');
 });
 
 app.get('/add-player', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'add-player.html'));
+    safeSendPublic(res, 'add-player.html');
 });
 
 // 4. Admin-Protected Pages
 app.get('/schedule-match', requireAdmin, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'schedule-match.html'));
+    safeSendPublic(res, 'schedule-match.html');
 });
 
 app.get('/edit-player', requireAdmin, (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'edit-player.html'));
+    safeSendPublic(res, 'edit-player.html');
 });
 
 // --- API Endpoints ---
@@ -418,6 +430,19 @@ app.get('/api/tickets', async (req, res) => {
         console.error('Tickets list error:', err.message);
         res.status(500).json({ error: 'Failed to list tickets.' });
     }
+});
+
+// Health endpoint for diagnostics
+app.get('/health', (req, res) => {
+    const dbConnected = !!(require('./db').pool);
+    res.json({ ok: true, db: dbConnected ? 'connected' : 'disabled' });
+});
+
+// Error-handling middleware (last middleware)
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err && err.stack ? err.stack : err);
+    if (res.headersSent) return next(err);
+    res.status(500).send('<pre>Internal Server Error</pre>');
 });
 
 // API: Book a ticket for a match and stand (with user info)
