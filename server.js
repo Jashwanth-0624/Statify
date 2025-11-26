@@ -299,6 +299,13 @@ app.post('/api/players', upload.single('photo'), async (req, res) => {
             calculatedAverage,
             parseFloat(strike_rate || 0)
         ]);
+        // Ensure the insert actually returned the new player row. If not,
+        // surface a clear error so clients don't attempt to read undefined fields.
+        if (!result || !Array.isArray(result.rows) || result.rows.length === 0) {
+            console.error('Insert did not return a player row. Query result:', result);
+            return res.status(500).json({ error: 'Database did not return inserted player. Check DATABASE_URL and DB configuration.' });
+        }
+
         res.json({ message: 'Player added successfully!', player: result.rows[0] });
     } catch (error) {
         res.status(500).json({ error: error.message });

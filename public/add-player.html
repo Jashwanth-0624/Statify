@@ -186,10 +186,16 @@
                     body: formData
                 });
 
-                const result = await response.json();
+                const result = await response.json().catch(() => ({}));
 
                 if (response.ok) {
-                    displayMessage(addPlayerMessage, `<strong>${result.player.name}</strong> has been added successfully to the database!`, 'success');
+                    if (!result.player) {
+                        console.error('Add Player: server returned ok but no player object', result);
+                        displayMessage(addPlayerMessage, 'Player added but server did not return the player details. Check server logs.', 'warning');
+                    } else {
+                        displayMessage(addPlayerMessage, `<strong>${result.player.name}</strong> has been added successfully to the database!`, 'success');
+                    }
+                    
                     addPlayerForm.reset();
                     // Reset all numeric fields to 0
                     document.getElementById('addRuns').value = '0';
