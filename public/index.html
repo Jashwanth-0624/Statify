@@ -178,6 +178,12 @@
         async function loadLeaderboard(stat, containerId, limit = 10) {
             try {
                 const response = await fetch(`${API_BASE}/leaderboards/${stat}`);
+                if (!response.ok) {
+                    const text = await response.text().catch(() => response.statusText || 'Unknown error');
+                    console.error('Leaderboard API error', response.status, text);
+                    document.getElementById(containerId).innerHTML = `<p class="text-danger text-center p-3">Failed to load data: ${escapeHtml(text)}</p>`;
+                    return;
+                }
                 const players = await response.json();
                 const topPlayers = players.slice(0, limit);
 
@@ -203,13 +209,18 @@
                 document.getElementById(containerId).innerHTML = html;
             } catch (error) {
                 console.error(`Error loading ${stat} leaderboard:`, error);
-                document.getElementById(containerId).innerHTML = '<p class="text-danger text-center p-3">Failed to load data</p>';
+                document.getElementById(containerId).innerHTML = '<p class="text-danger text-center p-3">Failed to load data (network error)</p>';
             }
         }
 
         async function loadTopPlayer(stat, containerId) {
             try {
                 const response = await fetch(`${API_BASE}/leaderboards/${stat}`);
+                if (!response.ok) {
+                    const text = await response.text().catch(() => response.statusText || 'Unknown error');
+                    console.error('Top player API error', response.status, text);
+                    return;
+                }
                 const players = await response.json();
                 if (players.length > 0) {
                     const player = players[0];

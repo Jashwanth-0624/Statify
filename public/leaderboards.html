@@ -135,11 +135,17 @@
 
             try {
                 const response = await fetch(`${API_BASE}/leaderboards/${stat}`);
+                if (!response.ok) {
+                    const text = await response.text().catch(() => response.statusText || 'Unknown error');
+                    console.error('Leaderboard API error', response.status, text);
+                    leaderboardContainer.innerHTML = `<p class="text-danger text-center p-5">Failed to load leaderboard: ${escapeHtml(text)}</p>`;
+                    return;
+                }
                 const players = await response.json();
                 renderLeaderboard(players, stat);
             } catch (error) {
                 console.error(`Error loading leaderboard:`, error);
-                leaderboardContainer.innerHTML = '<p class="text-danger text-center p-5">Failed to load leaderboard</p>';
+                leaderboardContainer.innerHTML = '<p class="text-danger text-center p-5">Failed to load leaderboard (network error)</p>';
             }
         }
 
