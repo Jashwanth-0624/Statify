@@ -5,4 +5,7 @@ const serverless = require('serverless-http');
 const app = require('../server');
 
 // Export the handler (Vercel calls this function for each request)
-module.exports = serverless(app);
+// Export both forms to maximize compatibility with different runtime expectations.
+const handler = serverless(app);
+module.exports = handler;
+module.exports.handler = handler;

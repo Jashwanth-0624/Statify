@@ -11,6 +11,15 @@ const axios = require('axios');
 // Load environment variables from .env file
 dotenv.config();
 
+// Global handlers to log unexpected errors so Vercel runtime logs capture them
+process.on('uncaughtException', (err) => {
+    console.error('UNCAUGHT EXCEPTION', err && err.stack ? err.stack : err);
+});
+
+process.on('unhandledRejection', (reason, p) => {
+    console.error('UNHANDLED REJECTION at Promise', p, 'reason:', reason);
+});
+
 // --- Configuration ---
 const { query, pool } = require('./db');
 const app = express();
@@ -453,6 +462,10 @@ app.post('/api/tickets/:matchId/book', async (req, res) => {
     if (!stand) return res.status(400).json({ error: 'Stand is required.' });
     if (!name || !phone) return res.status(400).json({ error: 'Name and phone number are required.' });
 
+    if (!pool) {
+        console.warn('Booking attempted but DB pool is not configured (DATABASE_URL missing).');
+        return res.status(503).json({ error: 'Database unavailable. Booking service disabled in this environment.' });
+    }
     const client = await pool.connect();
     try {
         console.log(`Booking: matchId=${matchId}, stand=${stand}, name=${name}, phone=${phone}`);
