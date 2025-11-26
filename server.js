@@ -35,6 +35,9 @@ let UPLOAD_DIR = process.env.UPLOAD_DIR || (IS_VERCEL ? '/tmp/uploads' : 'upload
 // Resolve to an absolute path for static serving
 const uploadDirPath = path.isAbsolute(UPLOAD_DIR) ? UPLOAD_DIR : path.join(__dirname, UPLOAD_DIR);
 
+// Informative startup log for serverless environments
+console.log('Statify: Express app module loaded. uploadDirPath=', uploadDirPath, 'IS_VERCEL=', IS_VERCEL);
+
 // --- Multer Setup for Photo Uploads ---
 let upload;
 try {
@@ -60,6 +63,15 @@ try {
 // --- Middleware ---
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+// Simple request logger to surface requests in Vercel function logs
+app.use((req, res, next) => {
+    try {
+        console.log('REQ', req.method, req.url);
+    } catch (e) {
+        // ignore logging errors
+    }
+    next();
+});
 app.use(session({
     secret: 'a-very-secret-key-for-statify', // Should be a strong, random key
     resave: false,
