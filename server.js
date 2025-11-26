@@ -17,24 +17,36 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-const UPLOAD_DIR = process.env.UPLOAD_DIR || 'uploads';
+// Upload directory handling
+// On serverless platforms (Vercel) the project filesystem is read-only.
+// Use /tmp for ephemeral writable storage there, or memory storage as a fallback.
+const IS_VERCEL = !!process.env.VERCEL;
+let UPLOAD_DIR = process.env.UPLOAD_DIR || (IS_VERCEL ? '/tmp/uploads' : 'uploads');
+
+// Resolve to an absolute path for static serving
+const uploadDirPath = path.isAbsolute(UPLOAD_DIR) ? UPLOAD_DIR : path.join(__dirname, UPLOAD_DIR);
 
 // --- Multer Setup for Photo Uploads ---
-// Ensure the upload directory exists
-if (!fs.existsSync(UPLOAD_DIR)) {
-    fs.mkdirSync(UPLOAD_DIR);
-}
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, UPLOAD_DIR);
-    },
-    filename: (req, file, cb) => {
-        // Use a unique name for the file
-        cb(null, Date.now() + '-' + file.originalname);
+let upload;
+try {
+    // Try to ensure the upload directory exists and is writable
+    if (!fs.existsSync(uploadDirPath)) {
+        fs.mkdirSync(uploadDirPath, { recursive: true });
     }
-});
-const upload = multer({ storage: storage });
+
+    const storage = multer.diskStorage({
+        destination: (req, file, cb) => cb(null, uploadDirPath),
+        filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+    });
+    upload = multer({ storage: storage });
+    console.log('Using disk storage for uploads at', uploadDirPath);
+} catch (err) {
+    // If we cannot create or write to the directory, fall back to memory storage
+    console.warn('Could not use disk storage for uploads, falling back to memory storage:', err.message);
+    const storage = multer.memoryStorage();
+    upload = multer({ storage: storage });
+    // When using memory storage, further steps (like uploading to S3) are recommended for persistence
+}
 
 // --- Middleware ---
 app.use(express.urlencoded({ extended: true }));
@@ -48,8 +60,8 @@ app.use(session({
 
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
-// Serve uploaded photos
-app.use('/uploads', express.static(path.join(__dirname, UPLOAD_DIR)));
+// Serve uploaded photos (use resolved uploadDirPath)
+app.use('/uploads', express.static(uploadDirPath));
 
 // Middleware to check for admin authentication
 const requireAdmin = (req, res, next) => {
